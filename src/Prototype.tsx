@@ -52,13 +52,13 @@ type ProductItem = {
 };
 
 const tests: TestItem[] = [
-  { id: "vitd", name: "Витамин D (25-OH)", category: "Витамины", price: 1490 },
-  { id: "b12", name: "Витамин B12", category: "Витамины", price: 990 },
-  { id: "ferritin", name: "Ферритин", category: "Метаболизм", price: 890 },
-  { id: "tsh", name: "ТТГ (TSH)", category: "Щитовидная", price: 790 },
-  { id: "apob", name: "ApoB", category: "Сердце", price: 1580 },
-  { id: "glucose", name: "Глюкоза", category: "Метаболизм", price: 420 },
-  { id: "insulin", name: "Инсулин", category: "Метаболизм", price: 650 },
+  { id: "vitd", name: "Витамин D (25-OH)", category: "Витамины", price: 2290 },
+  { id: "b12", name: "Витамин B12", category: "Витамины", price: 1290 },
+  { id: "ferritin", name: "Ферритин", category: "Метаболизм", price: 850 },
+  { id: "tsh", name: "ТТГ (TSH)", category: "Щитовидная", price: 650 },
+  { id: "apob", name: "ApoB", category: "Сердце", price: 790 },
+  { id: "glucose", name: "Глюкоза", category: "Метаболизм", price: 350 },
+  { id: "insulin", name: "Инсулин", category: "Метаболизм", price: 990 },
 ];
 
 const products: ProductItem[] = [

@@ -16,7 +16,7 @@ No broken layout, clipping, unintended horizontal scroll, missing source asset, 
 
 ## Interactions verified
 
-- Home → test selection → add B12 → total changes from 3 360 ₽ to 4 350 ₽.
+- Home → test selection → add B12 → total changes from 3 980 ₽ to 5 270 ₽.
 - Select PROLAB → submit order → receive application `#L-1048`.
 - Courier → select 12:00–13:00 → confirmation with assigned courier.
 - Results → biomarker dashboard → physician consultation.
