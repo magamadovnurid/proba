@@ -1,0 +1,23 @@
+claude.applaza.ru {
+	reverse_proxy 127.0.0.1:3001
+}
+
+text2pdf.ru {
+	@metrics path /metrics
+	respond @metrics 404
+	reverse_proxy 127.0.0.1:8177
+}
+
+probaclinical.ru, www.probaclinical.ru {
+	root * /opt/proba-miniapp/current
+	encode zstd gzip
+	try_files {path} /index.html
+	file_server
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(self), microphone=(), geolocation=()"
+		-Server
+	}
+}
