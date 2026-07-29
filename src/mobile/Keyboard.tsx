@@ -15,6 +15,7 @@ import { mobileAssets } from "./assets";
 import { useMobileDevice } from "./Device";
 
 type KeyboardContextValue = {
+  nativeKeyboard: boolean;
   visible: boolean;
   height: number;
   fullHeight: number;
@@ -34,19 +35,24 @@ type KeyboardInputProps = InputHTMLAttributes<HTMLInputElement> & {
 
 const KeyboardContext = createContext<KeyboardContextValue | null>(null);
 
-export function KeyboardProvider({ children }: PropsWithChildren) {
+type KeyboardProviderProps = PropsWithChildren<{
+  nativeKeyboard?: boolean;
+}>;
+
+export function KeyboardProvider({ children, nativeKeyboard = false }: KeyboardProviderProps) {
   const { device } = useMobileDevice();
   const [visible, setVisible] = useState(false);
   const [dragOffset, setRawDragOffset] = useState(0);
   const [isDragging, setDragging] = useState(false);
   const [focusedElement, setFocusedElement] = useState<HTMLElement | null>(null);
-  const fullHeight = device.geometry.keyboard.height;
+  const fullHeight = nativeKeyboard ? 0 : device.geometry.keyboard.height;
   const setDragOffset = (offset: number) => {
     setRawDragOffset(Math.max(0, Math.min(fullHeight, offset)));
   };
 
   const value = useMemo<KeyboardContextValue>(
     () => ({
+      nativeKeyboard,
       visible,
       height: visible ? Math.max(0, fullHeight - dragOffset) : 0,
       fullHeight,
@@ -69,7 +75,7 @@ export function KeyboardProvider({ children }: PropsWithChildren) {
         setVisible(false);
       },
     }),
-    [dragOffset, focusedElement, fullHeight, isDragging, visible],
+    [dragOffset, focusedElement, fullHeight, isDragging, nativeKeyboard, visible],
   );
 
   return <KeyboardContext.Provider value={value}>{children}</KeyboardContext.Provider>;
@@ -88,6 +94,17 @@ export function useKeyboard() {
 export function useKeyboardInsets() {
   const keyboard = useKeyboard();
   const { device } = useMobileDevice();
+  if (keyboard.nativeKeyboard) {
+    return {
+      keyboardHeight: 0,
+      keyboardFullHeight: 0,
+      keyboardDragging: false,
+      bottomInset: 0,
+      availableHeight: window.innerHeight,
+      isKeyboardVisible: keyboard.visible,
+    };
+  }
+
   const reservesAndroidNavigation = device.platform === "android" && !keyboard.visible;
 
   return {

@@ -17,7 +17,7 @@ function CarouselFixture() {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
-    <MobileRuntime>
+    <MobileRuntime previewFrame>
       <MobileScroll className="fixture-screen">
         <main className="fixture-content">
           <h1>Runtime fixture</h1>
@@ -73,7 +73,7 @@ function KeyboardFixture() {
   };
 
   return (
-    <MobileRuntime>
+    <MobileRuntime previewFrame>
       <FlowStack initial={screen} />
     </MobileRuntime>
   );
@@ -133,7 +133,7 @@ function FlowFixture() {
   };
 
   return (
-    <MobileRuntime>
+    <MobileRuntime previewFrame>
       <FlowStack initial={screen} />
     </MobileRuntime>
   );

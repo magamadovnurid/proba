@@ -16,6 +16,7 @@ import { isTelegramMiniApp } from "../telegram";
 
 type ScreenPortalContextValue = {
   screenRef: RefObject<HTMLDivElement | null>;
+  frameless: boolean;
 };
 
 const ScreenPortalContext = createContext<ScreenPortalContextValue | null>(null);
@@ -82,7 +83,11 @@ function useDeviceScale(
   return scale;
 }
 
-export function PhoneFrame({ children }: PropsWithChildren) {
+type PhoneFrameProps = PropsWithChildren<{
+  frameless?: boolean;
+}>;
+
+export function PhoneFrame({ children, frameless = false }: PhoneFrameProps) {
   const { device } = useMobileDevice();
   const { geometry } = device;
   const telegramMiniApp = isTelegramMiniApp();
@@ -93,8 +98,26 @@ export function PhoneFrame({ children }: PropsWithChildren) {
     telegramMiniApp,
   );
   const screenRef = useRef<HTMLDivElement | null>(null);
-  const contextValue = useMemo(() => ({ screenRef }), []);
+  const contextValue = useMemo(() => ({ screenRef, frameless }), [frameless]);
   const mobileCursor = useMobileCursor();
+
+  if (frameless) {
+    return (
+      <ScreenPortalContext.Provider value={contextValue}>
+        <div className="mini-app-stage" data-testid="mini-app-stage">
+          <div
+            ref={screenRef}
+            className="mini-app-screen"
+            data-phone-screen
+            data-testid="mini-app-screen"
+            onDragStartCapture={suppressNativeDrag}
+          >
+            {children}
+          </div>
+        </div>
+      </ScreenPortalContext.Provider>
+    );
+  }
 
   return (
     <ScreenPortalContext.Provider value={contextValue}>

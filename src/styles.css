@@ -52,6 +52,60 @@ body {
   overflow: hidden;
 }
 
+.mini-app-stage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: var(--tg-viewport-height, 100dvh);
+  overflow: hidden;
+  background: #f3f6fb;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.mini-app-screen {
+  --mini-app-safe-top: max(
+    var(--tg-content-safe-area-inset-top, 0px),
+    var(--tg-safe-area-inset-top, 0px),
+    env(safe-area-inset-top, 0px),
+    64px
+  );
+  --mini-app-safe-right: max(
+    var(--tg-content-safe-area-inset-right, 0px),
+    var(--tg-safe-area-inset-right, 0px),
+    env(safe-area-inset-right, 0px)
+  );
+  --mini-app-safe-bottom: max(
+    var(--tg-content-safe-area-inset-bottom, 0px),
+    var(--tg-safe-area-inset-bottom, 0px),
+    env(safe-area-inset-bottom, 0px),
+    12px
+  );
+  --mini-app-safe-left: max(
+    var(--tg-content-safe-area-inset-left, 0px),
+    var(--tg-safe-area-inset-left, 0px),
+    env(safe-area-inset-left, 0px)
+  );
+  --device-safe-area-bottom: var(--mini-app-safe-bottom);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f3f6fb;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mini-app-screen input,
+.mini-app-screen textarea,
+.mini-app-screen select,
+.mini-app-screen option,
+.mini-app-screen [contenteditable="true"] {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
 button,
 input,
 textarea {
@@ -708,6 +762,10 @@ p {
 .sheet-content {
   overflow: auto;
   padding: 0 18px 24px;
+}
+
+.mini-app-screen .sheet-content {
+  padding-bottom: calc(24px + var(--mini-app-safe-bottom));
 }
 
 .keyboard-dock {

@@ -7,12 +7,14 @@ import {
   useContext,
   useMemo,
   useRef,
+  useEffect,
   useState,
 } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useDrag } from "@use-gesture/react";
 import { useMobileDevice } from "./Device";
 import { useKeyboard, useKeyboardDismissDrag, useKeyboardInsets } from "./Keyboard";
+import { useScreenPortal } from "./PhoneFrame";
 
 export type FlowScreen = {
   id: string;
@@ -56,6 +58,7 @@ function FlowProvider({ value, children }: PropsWithChildren<{ value: FlowContro
 
 export function FlowStack({ initial }: { initial: FlowScreen }) {
   const { device } = useMobileDevice();
+  const { screenRef, frameless } = useScreenPortal();
   const keyboard = useKeyboard();
   const { bottomInset, keyboardDragging } = useKeyboardInsets();
   const dismissKeyboardDrag = useKeyboardDismissDrag();
@@ -65,6 +68,24 @@ export function FlowStack({ initial }: { initial: FlowScreen }) {
   const [stack, setStack] = useState<FlowEntry[]>(() => [initialEntry.current]);
   const [direction, setDirection] = useState(1);
   const [swipeX, setSwipeX] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(device.geometry.screen.width);
+
+  useEffect(() => {
+    if (!frameless) {
+      setViewportWidth(device.geometry.screen.width);
+      return;
+    }
+
+    const screen = screenRef.current;
+    if (!screen) return;
+
+    const update = () => setViewportWidth(screen.clientWidth || window.innerWidth);
+    const observer = new ResizeObserver(update);
+    update();
+    observer.observe(screen);
+
+    return () => observer.disconnect();
+  }, [device.geometry.screen.width, frameless, screenRef]);
 
   const toEntry = useCallback((screen: FlowScreen): FlowEntry => {
     const next = sequence.current;
@@ -124,7 +145,7 @@ export function FlowStack({ initial }: { initial: FlowScreen }) {
       const [movementX] = state.movement;
       const [velocityX] = state.velocity;
       const [directionX] = state.direction;
-      const nextX = Math.max(0, Math.min(movementX, device.geometry.screen.width));
+      const nextX = Math.max(0, Math.min(movementX, viewportWidth));
 
       if (!state.last) {
         setSwipeX(nextX);
@@ -146,13 +167,17 @@ export function FlowStack({ initial }: { initial: FlowScreen }) {
     },
   );
 
-  const screenWidth = device.geometry.screen.width;
+  const screenWidth = viewportWidth;
   const topIndex = stack.length - 1;
   const parkedX = -screenWidth * 0.28;
   const header = controls.current.header?.(controls);
   const headerHeight = controls.current.headerHeight ?? 0;
-  const headerSafeArea = header ? device.geometry.safeArea.top : 0;
-  const totalHeaderHeight = header ? headerSafeArea + headerHeight : 0;
+  const headerSafeArea = header
+    ? frameless
+      ? "var(--mini-app-safe-top)"
+      : `${device.geometry.safeArea.top}px`
+    : "0px";
+  const totalHeaderHeight = header ? `calc(${headerSafeArea} + ${headerHeight}px)` : "0px";
   const footer = controls.current.footer?.(controls);
   const footerHeight = controls.current.footerHeight ?? 0;
 
@@ -175,9 +200,9 @@ export function FlowStack({ initial }: { initial: FlowScreen }) {
         data-keyboard-dragging={keyboardDragging ? "true" : "false"}
         style={
           {
-            "--flow-header-height": `${totalHeaderHeight}px`,
+            "--flow-header-height": totalHeaderHeight,
             "--flow-header-content-height": `${headerHeight}px`,
-            "--flow-header-safe-area": `${headerSafeArea}px`,
+            "--flow-header-safe-area": headerSafeArea,
             "--flow-footer-height": `${footer ? footerHeight : 0}px`,
             "--keyboard-height": `${bottomInset}px`,
           } as CSSProperties

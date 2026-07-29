@@ -22,34 +22,56 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/tests/runtime-fixture.html");
 });
 
-test("Telegram mode enlarges the iPhone preview and hides preview controls", async ({ page }) => {
-  await page.setViewportSize({ width: 393, height: 852 });
-  await page.goto(
-    "/tests/runtime-fixture.html?tgWebAppPlatform=ios&tgWebAppVersion=9.6",
-  );
-
-  const stage = page.locator(".phone-stage");
-  const frame = page.getByTestId("phone-frame");
-  const screen = page.getByTestId("device-screen");
-
-  await expect(stage).toHaveAttribute("data-telegram-mini-app", "true");
-  await expect(page.getByTestId("device-picker")).toHaveCount(0);
-
-  const layout = await page.evaluate(() => {
-    const frameElement = document.querySelector<HTMLElement>('[data-testid="phone-frame"]')!;
-    const screenElement = document.querySelector<HTMLElement>('[data-testid="device-screen"]')!;
-
-    return {
-      viewportWidth: window.innerWidth,
-      frameWidth: frameElement.getBoundingClientRect().width,
-      frameHeight: frameElement.getBoundingClientRect().height,
-      screenWidth: screenElement.getBoundingClientRect().width,
-    };
+test("production Mini App is frameless, responsive, and respects Telegram controls", async ({ page }) => {
+  await page.route("https://telegram.org/js/telegram-web-app.js?63", async (route) => {
+    await route.fulfill({ contentType: "application/javascript", body: "" });
   });
+  await page.goto("/?tgWebAppPlatform=ios&tgWebAppVersion=9.6");
 
-  expect(layout.frameWidth).toBeGreaterThan(layout.viewportWidth);
-  expect(layout.frameHeight).toBeLessThanOrEqual(852);
-  expect(layout.screenWidth).toBeGreaterThan(340);
+  await expect(page.getByTestId("phone-frame")).toHaveCount(0);
+  await expect(page.getByTestId("device-picker")).toHaveCount(0);
+  await expect(page.getByTestId("mini-app-screen")).toBeVisible();
+
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 393, height: 852 },
+    { width: 768, height: 1024 },
+  ]) {
+    await page.setViewportSize(viewport);
+
+    const layout = await page.evaluate(() => {
+      const screen = document.querySelector<HTMLElement>('[data-testid="mini-app-screen"]')!;
+      const homeHeader = document.querySelector<HTMLElement>(".home-header")!;
+      const actionCards = Array.from(
+        document.querySelectorAll<HTMLElement>(".action-grid > button"),
+      );
+      const screenBounds = screen.getBoundingClientRect();
+
+      return {
+        screenBounds: {
+          left: screenBounds.left,
+          top: screenBounds.top,
+          width: screenBounds.width,
+          height: screenBounds.height,
+        },
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        documentWidth: document.documentElement.scrollWidth,
+        homeHeaderTop: homeHeader.getBoundingClientRect().top,
+        firstRowCards: actionCards.filter(
+          (card) => Math.abs(card.getBoundingClientRect().top - actionCards[0].getBoundingClientRect().top) < 1,
+        ).length,
+      };
+    });
+
+    expect(layout.screenBounds.left).toBe(0);
+    expect(layout.screenBounds.top).toBe(0);
+    expect(layout.screenBounds.width).toBeCloseTo(layout.viewportWidth, 0);
+    expect(layout.screenBounds.height).toBeCloseTo(layout.viewportHeight, 0);
+    expect(layout.documentWidth).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.homeHeaderTop).toBeGreaterThanOrEqual(64);
+    expect(layout.firstRowCards).toBe(viewport.width >= 600 ? 4 : 2);
+  }
 });
 
 test("Telegram bridge requests fullscreen and disables vertical close swipes", async ({ page }) => {
@@ -97,6 +119,8 @@ test("Telegram bridge requests fullscreen and disables vertical close swipes", a
     ]),
   );
   await expect(page.locator("html")).toHaveAttribute("data-telegram-mini-app", "true");
+  await expect(page.getByTestId("phone-frame")).toHaveCount(0);
+  await expect(page.getByTestId("mini-app-screen")).toBeVisible();
 });
 
 test("horizontal intent stays in Carousel and cannot create parent momentum", async ({ page }) => {
