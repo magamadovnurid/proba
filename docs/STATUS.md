@@ -9,6 +9,8 @@
 - сертификат Let's Encrypt действителен;
 - JavaScript, CSS и SPA fallback отвечают `200`;
 - глобальная кнопка Telegram `Открыть PROBA` направлена на работающий HTTPS-адрес;
+- Main Mini App включён в BotFather; Bot API возвращает `has_main_web_app: true`;
+- кнопка `Открыть PROBA` визуально проверена в чате `@probaclinicalbot`;
 - описание и команды `@probaclinicalbot` настроены;
 - соседние проекты `claude.applaza.ru` и `text2pdf.ru` после изменений отвечают `200`.
 
@@ -21,5 +23,5 @@
 1. дождаться сертификата Caddy для apex и `www`;
 2. проверить основной домен, ассеты и SPA;
 3. повторно проверить соседние проекты;
-4. переключить Telegram menu button с временного адреса на `https://probaclinical.ru`;
+4. переключить Telegram menu button и Main Mini App с временного адреса на `https://probaclinical.ru`;
 5. обновить этот документ и отключить мониторинг.

@@ -5,6 +5,7 @@
 - Production сейчас: [защищённый временный адрес](https://proba.64-188-58-140.nip.io)
 - Основной домен: [probaclinical.ru](https://probaclinical.ru) — переключится после первичной публикации DNS-зоны
 - Telegram: [@probaclinicalbot](https://t.me/probaclinicalbot)
+- Запуск в Telegram: кнопка `Открыть PROBA` и Main Mini App включены на временном production-адресе.
 - Статус: интерактивный frontend-прототип; реальные медицинские данные, оплата и интеграции не подключены.
 
 ## Документация
