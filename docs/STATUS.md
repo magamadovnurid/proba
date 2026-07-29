@@ -4,7 +4,7 @@
 
 ## Работает
 
-- активный production-релиз: `20260729-042344`, исходный commit: `552c31e`;
+- активный production-релиз: `20260729-045552`, исходный commit: `09f8d22`;
 - production-сборка размещена в отдельном каталоге VPS;
 - `https://probaclinical.ru` и `https://www.probaclinical.ru` отвечают `200`;
 - A-записи apex и `www` опубликованы на всех авторитетных NS Timeweb и видны через публичные резолверы Google и Cloudflare;
