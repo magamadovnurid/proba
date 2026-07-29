@@ -8,7 +8,7 @@ text2pdf.ru {
 	reverse_proxy 127.0.0.1:8177
 }
 
-probaclinical.ru, www.probaclinical.ru {
+probaclinical.ru, www.probaclinical.ru, proba.64-188-58-140.nip.io {
 	root * /opt/proba-miniapp/current
 	encode zstd gzip
 	try_files {path} /index.html
