@@ -4,11 +4,20 @@ type TelegramWebAppEvent =
   | "fullscreenChanged"
   | "fullscreenFailed";
 
+type TelegramBackButton = {
+  isVisible?: boolean;
+  show?: () => void;
+  hide?: () => void;
+  onClick?: (handler: () => void) => void;
+  offClick?: (handler: () => void) => void;
+};
+
 type TelegramWebApp = {
   initData?: string;
   platform?: string;
   version?: string;
   isFullscreen?: boolean;
+  BackButton?: TelegramBackButton;
   ready?: () => void;
   expand?: () => void;
   disableVerticalSwipes?: () => void;
@@ -90,4 +99,30 @@ export function initializeTelegramMiniApp() {
   });
 
   return true;
+}
+
+export function setTelegramBackButtonVisible(visible: boolean) {
+  if (!isTelegramMiniApp()) return;
+
+  const backButton = getTelegramWebApp()?.BackButton;
+  if (!backButton) return;
+
+  if (visible) {
+    backButton.show?.();
+  } else {
+    backButton.hide?.();
+  }
+}
+
+export function subscribeTelegramBackButton(handler: () => void) {
+  if (!isTelegramMiniApp()) return () => undefined;
+
+  const backButton = getTelegramWebApp()?.BackButton;
+  if (!backButton) return () => undefined;
+
+  backButton.onClick?.(handler);
+
+  return () => {
+    backButton.offClick?.(handler);
+  };
 }

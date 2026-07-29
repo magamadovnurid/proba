@@ -1,7 +1,6 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ActivityLogIcon,
-  ArrowLeftIcon,
   BackpackIcon,
   BarChartIcon,
   BellIcon,
@@ -34,6 +33,10 @@ import {
   type FlowControls,
   type FlowScreen,
 } from "./mobile";
+import {
+  setTelegramBackButtonVisible,
+  subscribeTelegramBackButton,
+} from "./telegram";
 
 type TestItem = {
   id: string;
@@ -90,12 +93,24 @@ function money(value: number) {
   return `${rub.format(value)} ₽`;
 }
 
-function ScreenHeader({ flow, title, trailing }: { flow: FlowControls; title: string; trailing?: ReactNode }) {
+function TelegramBackNavigation({ flow }: { flow: FlowControls }) {
+  useEffect(() => subscribeTelegramBackButton(flow.pop), [flow.pop]);
+
+  useEffect(() => {
+    setTelegramBackButtonVisible(flow.canGoBack);
+
+    return () => {
+      setTelegramBackButtonVisible(false);
+    };
+  }, [flow.canGoBack]);
+
+  return null;
+}
+
+function ScreenHeader({ title, trailing }: { title: string; trailing?: ReactNode }) {
   return (
     <div className="app-toolbar">
-      <button className="icon-button" type="button" aria-label="Назад" onClick={() => flow.pop()}>
-        <ArrowLeftIcon />
-      </button>
+      <span className="toolbar-leading-spacer" aria-hidden="true" />
       <strong>{title}</strong>
       <div className="toolbar-trailing">{trailing}</div>
     </div>
@@ -106,7 +121,7 @@ function screen(id: string, title: string, render: (flow: FlowControls) => React
   return {
     id,
     title,
-    header: (flow) => <ScreenHeader flow={flow} title={title} />,
+    header: () => <ScreenHeader title={title} />,
     headerHeight: 56,
     footer,
     footerHeight: footer ? 84 : 0,
@@ -189,8 +204,10 @@ function BottomNav({ flow }: { flow: FlowControls }) {
 
 function HomeScreen({ flow }: { flow: FlowControls }) {
   return (
-    <MobileScroll className="app-screen">
-      <main className="screen-content home-content">
+    <>
+      <TelegramBackNavigation flow={flow} />
+      <MobileScroll className="app-screen">
+        <main className="screen-content home-content">
         <header className="home-header">
           <div>
             <span>Добрый день</span>
@@ -264,8 +281,9 @@ function HomeScreen({ flow }: { flow: FlowControls }) {
             <ChevronRightIcon />
           </button>
         </section>
-      </main>
-    </MobileScroll>
+        </main>
+      </MobileScroll>
+    </>
   );
 }
 

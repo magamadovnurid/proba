@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef6ff"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2f5de5"/>
+      <stop offset="1" stop-color="#27c3a2"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#25405f" flood-opacity="0.12"/>
+    </filter>
+    <clipPath id="dropCrop">
+      <rect x="0" y="0" width="126" height="142" rx="20"/>
+    </clipPath>
+  </defs>
+
+  <rect width="640" height="360" rx="28" fill="url(#background)"/>
+  <circle cx="72" cy="72" r="122" fill="#eff4ff"/>
+  <circle cx="582" cy="309" r="145" fill="#f1fbf8"/>
+  <path d="M24 283 C93 245 123 281 171 238" fill="none" stroke="#d7e3ff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M466 105 C504 88 522 120 552 90 C570 73 592 75 616 55" fill="none" stroke="url(#accent)" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+  <circle cx="466" cy="105" r="6" fill="#2f5de5" opacity="0.55"/>
+  <circle cx="552" cy="90" r="6" fill="#27c3a2" opacity="0.55"/>
+  <circle cx="616" cy="55" r="6" fill="#27c3a2" opacity="0.55"/>
+
+  <g filter="url(#shadow)">
+    <rect x="132" y="28" width="376" height="304" rx="36" fill="#ffffff"/>
+  </g>
+
+  <g clip-path="url(#dropCrop)" transform="translate(257 48)">
+    <image href="../public/assets/proba/proba-bot-logo.png" x="-58" y="-26" width="242" height="242" preserveAspectRatio="xMidYMid slice"/>
+  </g>
+  <text x="320" y="242" text-anchor="middle" fill="#141c2a" font-family="Helvetica Neue, Arial, sans-serif" font-size="62" font-weight="800" letter-spacing="-2">PROBA</text>
+  <text x="320" y="280" text-anchor="middle" fill="#556276" font-family="Helvetica Neue, Arial, sans-serif" font-size="21" font-weight="600">АНАЛИЗЫ ДОМА</text>
+  <rect x="247" y="300" width="146" height="7" rx="3.5" fill="url(#accent)"/>
+</svg>

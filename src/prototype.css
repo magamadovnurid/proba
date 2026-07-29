@@ -55,6 +55,12 @@ button {
   white-space: nowrap;
 }
 
+.toolbar-leading-spacer {
+  display: block;
+  width: 36px;
+  height: 36px;
+}
+
 .icon-button {
   display: grid;
   width: 36px;

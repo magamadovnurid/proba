@@ -83,10 +83,11 @@ www.probaclinical.ru  A  64.188.58.140
 
 ## 7. Telegram
 
-В BotFather/Bot API настроены описание, команды, кнопка меню и Main Mini App. Кнопка меню и Main Mini App используют `https://probaclinical.ru`, а Bot API возвращает `has_main_web_app: true`. После будущих изменений Telegram-настроек необходимо:
+В BotFather/Bot API настроены описание, команды, кнопка меню, Main Mini App и отдельный Direct Mini App `proba`. Кнопка меню, Main Mini App и Direct Mini App используют `https://probaclinical.ru`, Bot API возвращает `has_main_web_app: true`, а публичная прямая ссылка имеет вид `https://t.me/probaclinicalbot/proba`. Для Direct Mini App загружена обложка `public/assets/proba/proba-miniapp-direct-preview.png` размером 640×360 px с основным знаком в центральной квадратной зоне. После будущих изменений Telegram-настроек необходимо:
 
 - проверить, что кнопка меню по-прежнему указывает на `https://probaclinical.ru`;
 - проверить тот же URL в Main Mini App через BotFather;
+- проверить Direct Mini App `https://t.me/probaclinicalbot/proba`, его обложку и переход на `https://probaclinical.ru`;
 - проверить запуск из Telegram на реальном телефоне;
 - отдельно реализовать обработчик `/start` на backend;
 - проверять `initData` на сервере перед доступом к пользовательским данным.
@@ -96,7 +97,9 @@ Frontend подключает официальный Telegram Web App SDK и п�
 - вызывает `ready()` и `expand()`;
 - для Bot API 7.7+ вызывает `disableVerticalSwipes()`;
 - для Bot API 8.0+ вызывает `requestFullscreen()`;
-- сохраняет системную кнопку закрытия Telegram;
+- скрывает `Telegram.WebApp.BackButton` на корневом экране, сохраняя системную кнопку закрытия;
+- показывает системный `Telegram.WebApp.BackButton` на вложенных экранах и связывает его с внутренним стеком навигации; собственные стрелки назад не рисуются;
+- поддерживает возврат свайпом от левого края на вложенных экранах;
 - использует динамическую высоту viewport и CSS-переменные safe area/content safe area;
 - оставляет защитную верхнюю зону не меньше 64 px, чтобы собственные элементы не перекрывали системные кнопки Telegram;
 - показывает production-интерфейс без рамки устройства; рамка iPhone/Pixel остаётся только в изолированном тестовом стенде runtime.
@@ -112,6 +115,6 @@ Telegram оставляет за собой нативный жест по со�
 - Caddy находится в состоянии `active`;
 - два соседних проекта отвечают так же, как до изменения;
 - Telegram-кнопка открывает Mini App без предупреждения;
-- `/open.html` отдаёт страницу с Open Graph/X-разметкой и перенаправляет пользователя на Main Mini App;
+- `/open.html` отдаёт страницу с Open Graph/X-разметкой и перенаправляет пользователя на Direct Mini App `https://t.me/probaclinicalbot/proba`;
 - `/og.png` отвечает `200`, имеет размер 1200×630 px и доступен внешним роботам соцсетей;
 - в браузерной консоли нет ошибок.

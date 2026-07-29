@@ -87,6 +87,20 @@ test("Telegram bridge requests fullscreen and disables vertical close swipes", a
             version: "9.6",
             isFullscreen: false,
             isVersionAtLeast: () => true,
+            BackButton: {
+              show: () => window.__probaTelegramCalls.push("BackButton.show"),
+              hide: () => window.__probaTelegramCalls.push("BackButton.hide"),
+              onClick: (handler) => {
+                window.__probaBackHandler = handler;
+                window.__probaTelegramCalls.push("BackButton.onClick");
+              },
+              offClick: (handler) => {
+                if (window.__probaBackHandler === handler) {
+                  window.__probaBackHandler = undefined;
+                }
+                window.__probaTelegramCalls.push("BackButton.offClick");
+              },
+            },
             ready: () => window.__probaTelegramCalls.push("ready"),
             expand: () => window.__probaTelegramCalls.push("expand"),
             disableVerticalSwipes: () => window.__probaTelegramCalls.push("disableVerticalSwipes"),
@@ -116,11 +130,70 @@ test("Telegram bridge requests fullscreen and disables vertical close swipes", a
       "setHeaderColor",
       "setBackgroundColor",
       "setBottomBarColor",
+      "BackButton.onClick",
+      "BackButton.hide",
     ]),
   );
   await expect(page.locator("html")).toHaveAttribute("data-telegram-mini-app", "true");
   await expect(page.getByTestId("phone-frame")).toHaveCount(0);
   await expect(page.getByTestId("mini-app-screen")).toBeVisible();
+});
+
+test("production navigation uses Telegram's BackButton and no in-app back arrow", async ({ page }) => {
+  await page.route("https://telegram.org/js/telegram-web-app.js?63", async (route) => {
+    await route.fulfill({
+      contentType: "application/javascript",
+      body: `
+        window.__probaTelegramCalls = [];
+        window.Telegram = {
+          WebApp: {
+            initData: "signed-init-data",
+            platform: "ios",
+            version: "9.6",
+            isFullscreen: true,
+            isVersionAtLeast: () => true,
+            BackButton: {
+              show: () => window.__probaTelegramCalls.push("BackButton.show"),
+              hide: () => window.__probaTelegramCalls.push("BackButton.hide"),
+              onClick: (handler) => { window.__probaBackHandler = handler; },
+              offClick: (handler) => {
+                if (window.__probaBackHandler === handler) window.__probaBackHandler = undefined;
+              },
+            },
+            ready: () => undefined,
+            expand: () => undefined,
+            disableVerticalSwipes: () => undefined,
+            setHeaderColor: () => undefined,
+            setBackgroundColor: () => undefined,
+            setBottomBarColor: () => undefined,
+            onEvent: () => undefined,
+          },
+        };
+      `,
+    });
+  });
+
+  await page.goto("/?tgWebAppPlatform=ios&tgWebAppVersion=9.6");
+  await page.locator(".action-grid > button").filter({ hasText: "Активировать набор" }).click();
+
+  await expect(page.getByText("Активация набора", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Назад" })).toHaveCount(0);
+  await expect
+    .poll(() => page.evaluate(
+      () => (window as Window & { __probaTelegramCalls: string[] }).__probaTelegramCalls,
+    ))
+    .toContain("BackButton.show");
+
+  await page.evaluate(
+    () => (window as Window & { __probaBackHandler?: () => void }).__probaBackHandler?.(),
+  );
+
+  await expect(page.getByRole("heading", { name: "Михаил" })).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(
+      () => (window as Window & { __probaTelegramCalls: string[] }).__probaTelegramCalls.at(-1),
+    ))
+    .toBe("BackButton.hide");
 });
 
 test("horizontal intent stays in Carousel and cannot create parent momentum", async ({ page }) => {
