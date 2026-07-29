@@ -20,6 +20,13 @@ body,
   margin: 0;
 }
 
+html[data-telegram-mini-app="true"],
+body[data-telegram-mini-app="true"] {
+  height: var(--tg-viewport-stable-height, 100dvh);
+  min-height: var(--tg-viewport-stable-height, 100dvh);
+  overscroll-behavior: none;
+}
+
 .mobile-carousel {
   position: relative;
   display: block;
@@ -62,6 +69,14 @@ button {
   height: 100%;
   place-items: center;
   padding: 24px;
+}
+
+.phone-stage[data-telegram-mini-app="true"] {
+  padding: 2px 0;
+  overflow: hidden;
+  background: #f7fbff;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .device-menu-bar {

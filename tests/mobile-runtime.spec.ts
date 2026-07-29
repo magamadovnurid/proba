@@ -22,6 +22,83 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/tests/runtime-fixture.html");
 });
 
+test("Telegram mode enlarges the iPhone preview and hides preview controls", async ({ page }) => {
+  await page.setViewportSize({ width: 393, height: 852 });
+  await page.goto(
+    "/tests/runtime-fixture.html?tgWebAppPlatform=ios&tgWebAppVersion=9.6",
+  );
+
+  const stage = page.locator(".phone-stage");
+  const frame = page.getByTestId("phone-frame");
+  const screen = page.getByTestId("device-screen");
+
+  await expect(stage).toHaveAttribute("data-telegram-mini-app", "true");
+  await expect(page.getByTestId("device-picker")).toHaveCount(0);
+
+  const layout = await page.evaluate(() => {
+    const frameElement = document.querySelector<HTMLElement>('[data-testid="phone-frame"]')!;
+    const screenElement = document.querySelector<HTMLElement>('[data-testid="device-screen"]')!;
+
+    return {
+      viewportWidth: window.innerWidth,
+      frameWidth: frameElement.getBoundingClientRect().width,
+      frameHeight: frameElement.getBoundingClientRect().height,
+      screenWidth: screenElement.getBoundingClientRect().width,
+    };
+  });
+
+  expect(layout.frameWidth).toBeGreaterThan(layout.viewportWidth);
+  expect(layout.frameHeight).toBeLessThanOrEqual(852);
+  expect(layout.screenWidth).toBeGreaterThan(340);
+});
+
+test("Telegram bridge requests fullscreen and disables vertical close swipes", async ({ page }) => {
+  await page.route("https://telegram.org/js/telegram-web-app.js?63", async (route) => {
+    await route.fulfill({
+      contentType: "application/javascript",
+      body: `
+        window.__probaTelegramCalls = [];
+        window.Telegram = {
+          WebApp: {
+            initData: "signed-init-data",
+            platform: "ios",
+            version: "9.6",
+            isFullscreen: false,
+            isVersionAtLeast: () => true,
+            ready: () => window.__probaTelegramCalls.push("ready"),
+            expand: () => window.__probaTelegramCalls.push("expand"),
+            disableVerticalSwipes: () => window.__probaTelegramCalls.push("disableVerticalSwipes"),
+            requestFullscreen: () => window.__probaTelegramCalls.push("requestFullscreen"),
+            setHeaderColor: () => window.__probaTelegramCalls.push("setHeaderColor"),
+            setBackgroundColor: () => window.__probaTelegramCalls.push("setBackgroundColor"),
+            setBottomBarColor: () => window.__probaTelegramCalls.push("setBottomBarColor"),
+            onEvent: () => undefined,
+          },
+        };
+      `,
+    });
+  });
+
+  await page.goto("/?tgWebAppPlatform=ios&tgWebAppVersion=9.6");
+
+  const calls = await page.evaluate(
+    () => (window as Window & { __probaTelegramCalls: string[] }).__probaTelegramCalls,
+  );
+
+  expect(calls).toEqual(
+    expect.arrayContaining([
+      "ready",
+      "expand",
+      "disableVerticalSwipes",
+      "requestFullscreen",
+      "setHeaderColor",
+      "setBackgroundColor",
+      "setBottomBarColor",
+    ]),
+  );
+  await expect(page.locator("html")).toHaveAttribute("data-telegram-mini-app", "true");
+});
+
 test("horizontal intent stays in Carousel and cannot create parent momentum", async ({ page }) => {
   const carousel = page.locator(".fixture-carousel");
   const card = page.locator(".carousel-card").nth(1);
@@ -91,7 +168,7 @@ test("BottomSheet remains mounted while its default exit animation plays", async
   await page.locator(".sheet-trigger").click();
   await expect(page.getByTestId("bottom-sheet")).toBeVisible();
 
-  await page.getByTestId("sheet-overlay").click({ position: { x: 8, y: 8 } });
+  await page.getByTestId("sheet-overlay").click({ force: true, position: { x: 8, y: 8 } });
   await expect(page.getByTestId("bottom-sheet")).toHaveCount(1);
   await page.waitForTimeout(500);
   await expect(page.getByTestId("bottom-sheet")).toHaveCount(0);

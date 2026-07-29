@@ -12,6 +12,7 @@ import {
 } from "react";
 import { DevicePicker, useMobileDevice } from "./Device";
 import { useMobileCursor } from "./MobileCursor";
+import { isTelegramMiniApp } from "../telegram";
 
 type ScreenPortalContextValue = {
   screenRef: RefObject<HTMLDivElement | null>;
@@ -37,8 +38,20 @@ export function useScreenPortal() {
   return context;
 }
 
-function getDeviceScale(deviceWidth: number, deviceHeight: number) {
+function getDeviceScale(
+  deviceWidth: number,
+  deviceHeight: number,
+  screenWidth: number,
+  telegramMiniApp: boolean,
+) {
   if (typeof window === "undefined") return 1;
+
+  if (telegramMiniApp) {
+    const horizontal = (window.innerWidth - 20) / screenWidth;
+    const vertical = (window.innerHeight - 4) / deviceHeight;
+
+    return Math.max(0.42, Math.min(horizontal, vertical, 1));
+  }
 
   const horizontal = (window.innerWidth - 48) / deviceWidth;
   const vertical = (window.innerHeight - 48) / deviceHeight;
@@ -46,17 +59,25 @@ function getDeviceScale(deviceWidth: number, deviceHeight: number) {
   return Math.max(0.42, Math.min(horizontal, vertical, 1));
 }
 
-function useDeviceScale(deviceWidth: number, deviceHeight: number) {
-  const [scale, setScale] = useState(() => getDeviceScale(deviceWidth, deviceHeight));
+function useDeviceScale(
+  deviceWidth: number,
+  deviceHeight: number,
+  screenWidth: number,
+  telegramMiniApp: boolean,
+) {
+  const [scale, setScale] = useState(() =>
+    getDeviceScale(deviceWidth, deviceHeight, screenWidth, telegramMiniApp),
+  );
 
   useEffect(() => {
-    const update = () => setScale(getDeviceScale(deviceWidth, deviceHeight));
+    const update = () =>
+      setScale(getDeviceScale(deviceWidth, deviceHeight, screenWidth, telegramMiniApp));
 
     update();
     window.addEventListener("resize", update);
 
     return () => window.removeEventListener("resize", update);
-  }, [deviceHeight, deviceWidth]);
+  }, [deviceHeight, deviceWidth, screenWidth, telegramMiniApp]);
 
   return scale;
 }
@@ -64,15 +85,24 @@ function useDeviceScale(deviceWidth: number, deviceHeight: number) {
 export function PhoneFrame({ children }: PropsWithChildren) {
   const { device } = useMobileDevice();
   const { geometry } = device;
-  const scale = useDeviceScale(geometry.device.width, geometry.device.height);
+  const telegramMiniApp = isTelegramMiniApp();
+  const scale = useDeviceScale(
+    geometry.device.width,
+    geometry.device.height,
+    geometry.screen.width,
+    telegramMiniApp,
+  );
   const screenRef = useRef<HTMLDivElement | null>(null);
   const contextValue = useMemo(() => ({ screenRef }), []);
   const mobileCursor = useMobileCursor();
 
   return (
     <ScreenPortalContext.Provider value={contextValue}>
-      <div className="phone-stage">
-        <DevicePicker />
+      <div
+        className="phone-stage"
+        data-telegram-mini-app={telegramMiniApp ? "true" : "false"}
+      >
+        {telegramMiniApp ? null : <DevicePicker />}
         <div
           className="phone-scale-box"
           style={{
